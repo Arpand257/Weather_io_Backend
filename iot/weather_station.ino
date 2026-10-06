@@ -5,8 +5,8 @@
 // ==============================
 // WiFi
 // ==============================
-const char *ssid = "Arpan_Jio";
-const char *password = "Arpan@2005";
+const char *ssid = "Wifi_Name";
+const char *password = "Wifi_Password";
 
 // ==============================
 // Backend API
