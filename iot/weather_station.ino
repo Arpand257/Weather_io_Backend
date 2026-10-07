@@ -1,6 +1,7 @@
 #include <DHT.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WiFi.h>
+#include <time.h>
 
 // ==============================
 // WiFi
@@ -11,7 +12,7 @@ const char *password = "Arpan@2005";
 // ==============================
 // Backend API
 // ==============================
-const char *serverURL = "http://192.168.29.157:8000/api/ingest";
+const char *serverURL = "http://192.168.29.226:8000/api/ingest";
 
 // ==============================
 // Pins
@@ -26,7 +27,7 @@ const char *serverURL = "http://192.168.29.157:8000/api/ingest";
 DHT dht(DHTPIN, DHTTYPE);
 
 unsigned long lastSend = 0;
-const unsigned long sendInterval = 5000; // 5 seconds
+const unsigned long sendInterval = 300000; // 5 minutes (5 * 60 * 1000 ms)
 
 void sendWeatherData() {
 
@@ -58,6 +59,13 @@ void sendWeatherData() {
     rainStatus = "No Rain";
   }
 
+  // Get current time from NTP (already in IST based on setup config)
+  time_t now = time(nullptr);
+  struct tm *timeinfo = localtime(&now);
+  char timeStringBuff[50];
+  strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S",
+           timeinfo);
+
   // ==============================
   // Create JSON
   // ==============================
@@ -82,6 +90,10 @@ void sendWeatherData() {
 
   json += ",\"rain\":\"";
   json += rainStatus;
+  json += "\"";
+
+  json += ",\"device_time\":\"";
+  json += String(timeStringBuff);
   json += "\"";
 
   json += "}";
@@ -159,6 +171,17 @@ void setup() {
 
   Serial.print("ESP8266 IP: ");
   Serial.println(WiFi.localIP());
+
+  // Initialize time with IST offset (5.5 hours * 3600 seconds = 19800)
+  configTime(19800, 0, "pool.ntp.org", "time.nist.gov");
+  Serial.print("Synchronizing time");
+  time_t now = time(nullptr);
+  while (now < 8 * 3600 * 2) {
+    delay(500);
+    Serial.print(".");
+    now = time(nullptr);
+  }
+  Serial.println("\nTime synchronized!");
 
   Serial.print("Backend: ");
   Serial.println(serverURL);
