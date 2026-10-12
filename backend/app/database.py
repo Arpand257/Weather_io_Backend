@@ -1,7 +1,6 @@
 from sqlalchemy import create_engine, Column, Integer, Float, DateTime, String
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import sessionmaker
-from datetime import datetime
+from sqlalchemy.orm import declarative_base, sessionmaker, Session
+from datetime import datetime, timezone
 
 # You can change these credentials or load from environment variables later
 DATABASE_URL = "postgresql://postgres:arpan123@localhost:5432/weather_db"
@@ -14,7 +13,7 @@ class Reading(Base):
     __tablename__ = "readings"
     
     id = Column(Integer, primary_key=True, index=True)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     temperature = Column(Float)
     humidity = Column(Float)
     pressure = Column(Float)
@@ -34,7 +33,7 @@ def get_db():
 
 def insert_reading(db, data: dict):
     # Use device time if provided, otherwise use current time
-    timestamp_val = datetime.utcnow()
+    timestamp_val = datetime.now(timezone.utc)
     if data.get("device_time"):
         try:
             timestamp_val = datetime.strptime(data.get("device_time"), "%Y-%m-%d %H:%M:%S")
@@ -59,3 +58,9 @@ def get_latest_reading(db: Session):
 
 def get_history(db: Session, limit: int = 24):
     return db.query(Reading).order_by(Reading.timestamp.desc()).limit(limit).all()
+
+def get_readings_count_since(db: Session, since: datetime) -> int:
+    return db.query(Reading).filter(Reading.timestamp >= since).count()
+
+def get_first_reading(db: Session):
+    return db.query(Reading).order_by(Reading.timestamp.asc()).first()

@@ -71,7 +71,7 @@ class MLModel:
         temp_pred = self.temp_model.predict(scaled)[0]
         
         # Calculate Sun Position
-        azimuth, elevation = self.calculate_solar_position(datetime.utcnow(), lat, lon)
+        azimuth, elevation = self.calculate_solar_position(datetime.now(timezone.utc), lat, lon)
         
         return {
             "rain_tomorrow": bool(rain_pred),
