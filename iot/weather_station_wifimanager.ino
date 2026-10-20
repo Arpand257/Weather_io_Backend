@@ -35,6 +35,7 @@
 #include <EEPROM.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 #include <Wire.h>
 #include <time.h>
@@ -59,8 +60,8 @@ Adafruit_BMP085 bmp;
 #define EEPROM_SIZE 256
 #define SERVER_URL_MAX_LEN 128
 
-// Default fallback server URL if none entered
-char serverURL[SERVER_URL_MAX_LEN] = "http://192.168.1.100:8000/api/ingest";
+// Default fallback server URL if none entered (updated with PC Wi-Fi IP: 10.163.219.125)
+char serverURL[SERVER_URL_MAX_LEN] = "http://10.163.219.125:8000/api/ingest";
 
 bool shouldSaveConfig = false;
 bool bmpAvailable = false;
@@ -98,9 +99,9 @@ void loadCustomConfigFromEEPROM() {
   }
   EEPROM.end();
 
-  // If valid URL string exists in EEPROM, use it
+  // If valid URL string exists in EEPROM and is not the outdated placeholder, use it
   if (loaded[0] == 'h' && loaded[1] == 't' && loaded[2] == 't' &&
-      loaded[3] == 'p') {
+      loaded[3] == 'p' && strstr(loaded, "192.168.1.100") == nullptr) {
     strncpy(serverURL, loaded, SERVER_URL_MAX_LEN - 1);
     serverURL[SERVER_URL_MAX_LEN - 1] = '\0';
     Serial.print("[EEPROM] Loaded saved Server URL: ");
