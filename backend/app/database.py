@@ -2,8 +2,9 @@ from sqlalchemy import create_engine, Column, Integer, Float, DateTime, String
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from datetime import datetime, timezone
 
+import os
 # You can change these credentials or load from environment variables later
-DATABASE_URL = "postgresql://postgres:arpan123@localhost:5432/weather_db"
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:arpan123@localhost:5432/weather_db")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
